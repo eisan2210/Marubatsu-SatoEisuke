@@ -29,13 +29,10 @@ struct ContentView: View {
     
     @AppStorage("quiz") var quizData = Data() //UserDefaultsから問題を読み込む(Data型)
     @State var quizzesArray: [Quiz] = [] //問題を入れておく配列
-    
-    
     @State var currentQuestionNum = 0 // 今何問目
     @State var showingAlert = false //アラートの表示・非表示を制御
     @State var alertTitle: String = ""  //"正解"か"不正解"の文字を入れるもの
-    
-    //画面生成時に
+    //画面生成時にquizzesDataに読み込んだ値(Data型)を[Quiz]型にデコードしてquizzesArrayに入れる
     init(){
         if let decodeQuizzes = try? JSONDecoder().decode([Quiz].self, from: quizData){
             _quizzesArray = State(initialValue: decodeQuizzes)
@@ -101,7 +98,7 @@ struct ContentView: View {
                     // 配置する場所を画面最上部のバーの右端に設定
                     ToolbarItem(placement: .topBarTrailing) {
                         NavigationLink {
-                            CreateView(quizzesArray: $quizzesArray) //遷移先の画面
+                            CreateView(quizzesArray: $quizzesArray, currentQuestionNum: $currentQuestionNum) //遷移先の画面
                                 .navigationTitle("問題を作ろう")
                         } label: {
                             Image(systemName: "plus")

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CreateView: View {
     @Binding var quizzesArray: [Quiz] //回答画面で読み込んだ問題を受け取る
+    @Binding var currentQuestionNum: Int
     @State private var questionText = "" //テキストフィールドの文字を受け取る
     @State private var selectAnswer = "○" //ピッカーで選ばれた回答を受け取る
     let answes = ["○", "×"] // ピッカーの選択肢の一覧
@@ -55,7 +56,67 @@ struct CreateView: View {
             .padding()
             
         }
+        
+        List {
+            ForEach(quizzesArray) { array in
+                HStack{
+                    Text(array.question)
+                    if array.answer {
+                        Spacer()
+                        Text("解答：○")
+                    } else {
+                        Spacer()
+                        Text("解答：×")
+                    }
+                }
+            }
+            // リストの並び替え時の処理を設定
+            .onMove(perform: { from, to in
+                replaceRow(from, to)
+            })
+            // 削除
+            .onDelete {indexSet in
+                deleteQuiz(offsets: indexSet)
+            }
+            
+        }
+        
+        // ナビゲーションバーに編集ボタンを追加
+        .toolbar(content: {
+            EditButton()
+        })
+        
     }
+    
+    // 削除メソッド: エンコードできるのを確認してから削除したものを保存
+    func deleteQuiz(offsets: IndexSet) {
+        var arrayDelegate = quizzesArray
+        arrayDelegate.remove(atOffsets: offsets)
+        
+        let storeKye = "quiz" // UserDefaultsに保存するためのキー
+        if let encodQuizzes = try? JSONEncoder().encode(arrayDelegate) {
+            UserDefaults.standard.setValue(encodQuizzes, forKey: storeKye)
+            quizzesArray = arrayDelegate
+            currentQuestionNum = 0
+        }
+    }
+    
+    
+    
+    // 並び替え処理と並び替え後の保存
+    func replaceRow(_ from: IndexSet, _ to: Int) {
+        quizzesArray.move(fromOffsets: from, toOffset: to) // 配列内での並び替え
+        let arrayChanged = quizzesArray //一時的に変数を入れておく
+        let storeKye = "quiz" // UserDefaultsに保存するためのキー
+        if let encodQuizzes = try? JSONEncoder().encode(arrayChanged) {
+            UserDefaults.standard.setValue(encodQuizzes, forKey: storeKye)
+            quizzesArray = arrayChanged
+            currentQuestionNum = 0
+            
+        }
+        
+    }
+    
     
     func addQuiz(question: String, answer: String) {
         if question.isEmpty {
@@ -97,5 +158,8 @@ struct CreateView: View {
 }
 
 #Preview {
-   // CreateView()
+    //CreateView()
+}
+#Preview {
+    ContentView()
 }
